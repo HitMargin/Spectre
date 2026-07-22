@@ -70,6 +70,9 @@ internal static class ReplayEncoder
         w.Write(m.IfNoFail);
         w.Write(m.StartTime?.ToUnixTimeMilliseconds() ?? long.MinValue);
         WriteStr(w, m.SpVersion);
+        w.Write(m.PercentXacc);
+        w.Write(m.MaximumUsedKeys);
+        WriteStr(w, m.JudgmentList);
     }
 
     private static void WriteStr(BinaryWriter w, string s) => w.Write(s ?? "");

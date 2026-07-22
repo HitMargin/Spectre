@@ -126,7 +126,7 @@ public static class SpectreState
         var btn = scnEditor.instance.buttonNoFail;
         if (btn == null) return;
         var img = btn.GetComponent<UnityEngine.UI.Image>();
-        img.color = scrController.instance.noFail ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
+        img.color = data.bools[IfNoFail] ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
     }
 
     internal static bool RecordMode = true;

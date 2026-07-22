@@ -125,22 +125,22 @@ internal class Patch_StartRewind
                 }
                 if (data.bools[IsOfficialLevel] != ADOBase.isOfficialLevel)
                 {
-                    TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error1") + data.strings[SongName], 3f, NotifType.Warning);
-                    return;
+                    // TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error1") + data.strings[SongName], 3f, NotifType.Warning);
+                    // return;
                 }
                 if (data.bools[IsOfficialLevel])
                 {
-                    if (data.strings[SceneName] != SceneManager.GetActiveScene().name)
-                    {
-                        TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error1") + data.strings[SongName], 3f, NotifType.Warning);
-                        return;
-                    }
-                    if (!string.IsNullOrEmpty(data.strings[InternalLevelName])
-                        && data.strings[InternalLevelName] != GCS.internalLevelName)
-                    {
-                        TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error1") + data.strings[SongName], 3f, NotifType.Warning);
-                        return;
-                    }
+                    // if (data.strings[SceneName] != SceneManager.GetActiveScene().name)
+                    // {
+                    //     TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error1") + data.strings[SongName], 3f, NotifType.Warning);
+                    //     return;
+                    // }
+                    // if (!string.IsNullOrEmpty(data.strings[InternalLevelName])
+                    //     && data.strings[InternalLevelName] != GCS.internalLevelName)
+                    // {
+                    //     TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error1") + data.strings[SongName], 3f, NotifType.Warning);
+                    //     return;
+                    // }
                 }
                 int floorHash = ADOBase.isOfficialLevel
                     ? 0
@@ -172,11 +172,11 @@ internal class Patch_StartRewind
                 }
                 if (data.bools[SpeedTrailMode] || data.bools[QuickPitched])
                 {
-                    if (data.strings[SceneName] != SceneManager.GetActiveScene().name)
-                    {
-                        TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error6"), 3f, NotifType.Warning);
-                        return;
-                    }
+                    // if (data.strings[SceneName] != SceneManager.GetActiveScene().name)
+                    // {
+                    //     TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error6"), 3f, NotifType.Warning);
+                    //     return;
+                    // }
                 }
                 double expectedSpeed = 1.0;
                 double actualSpeed = 1.0;
@@ -205,6 +205,7 @@ internal class Patch_StartRewind
             GCS.hitMarginLimit = StoredHitMarginLimit;
             CachedNoFail = scrController.instance.noFail;
             scrController.instance.noFail = true;
+            SyncEditorNoFailButton();
 
             IsFullRun = data.ints.ContainsKey(StartTile) && data.ints.ContainsKey(EndTile)
                 && data.ints[StartTile] == 0
@@ -251,7 +252,7 @@ internal class Patch_StartRewind
             data.strings[InternalLevelName] = GCS.internalLevelName ?? "";
             data.bools[IsOfficialLevel] = ADOBase.isOfficialLevel;
             data.bools[QuickPitched] = GCS.editorQuickPitchedPlaying;
-            data.bools[IfNoFail] = GCS.useNoFail;
+            data.bools[IfNoFail] = ADOBase.controller?.noFail ?? GCS.useNoFail;
             data.ints[FloorHash] = ADOBase.isOfficialLevel
                 ? 0
                 : (scnGame.instance.levelData.isOldLevel

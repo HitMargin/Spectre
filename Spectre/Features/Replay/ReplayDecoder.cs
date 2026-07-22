@@ -98,6 +98,12 @@ internal static class ReplayDecoder
         var startTimeMs = r.ReadInt64();
         m.StartTime = startTimeMs == long.MinValue ? null : DateTimeOffset.FromUnixTimeMilliseconds(startTimeMs);
         m.SpVersion = r.ReadString();
+        if (ver >= 2)
+        {
+            m.PercentXacc = r.ReadDouble();
+            m.MaximumUsedKeys = r.ReadInt32();
+            m.JudgmentList = r.ReadString();
+        }
         return m;
     }
 
@@ -187,6 +193,10 @@ internal static class ReplayDecoder
         m.QuickPitched = GvB(old.bools, QuickPitched);
         m.IfNoFail = GvB(old.bools, IfNoFail);
 
+        m.PercentXacc = GvD(old.doubles, PercentXacc);
+        m.MaximumUsedKeys = GvI(old.ints, MaximumUsedKeys);
+        m.JudgmentList = GvS(old.strings, JudgmentList);
+
         replay.KeyEvents = old.KeyEvent_list.ConvertAll(k => new KeyEvent
         {
             KeyCode = k.KeyCode,
@@ -237,6 +247,10 @@ internal static class ReplayDecoder
         old.bools[SpeedTrailMode] = m.SpeedTrailMode;
         old.bools[QuickPitched] = m.QuickPitched;
         old.bools[IfNoFail] = m.IfNoFail;
+
+        old.doubles[PercentXacc] = m.PercentXacc;
+        old.ints[MaximumUsedKeys] = m.MaximumUsedKeys;
+        old.strings[JudgmentList] = m.JudgmentList;
 
         foreach (var k in replay.KeyEvents)
             old.KeyEvent_list.Add(new KeyEvent

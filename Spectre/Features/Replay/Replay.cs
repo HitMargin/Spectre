@@ -47,6 +47,10 @@ public class Replay
         public bool QuickPitched;
         public bool IfNoFail;
 
+        public double PercentXacc;
+        public int MaximumUsedKeys;
+        public string JudgmentList = "";
+
         public DateTimeOffset? StartTime;
         public string SpVersion = "";
     }

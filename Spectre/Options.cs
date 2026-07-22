@@ -233,12 +233,12 @@ public static class Options
         if (SpectreState.is_recording || SpectreState.is_playing)
         {
             Label(Loc("main.text1"));
-            return;
+            GUI.enabled = false;
         }
 
         GUILayout.BeginHorizontal();
 
-        GUILayout.BeginVertical(GUILayout.Width(TextSize * 14));
+        GUILayout.BeginVertical(GUILayout.Width(TextSize * 14), GUILayout.ExpandHeight(true));
         GUI.backgroundColor = new Color(0.15f, 0.15f, 0.15f);
         DrawPlaybackTab();
         DrawTabBar();
@@ -677,9 +677,15 @@ public static class Options
 
     private static void DrawEffectRemoverContent()
     {
-        scrollPosEffectRemover = GUILayout.BeginScrollView(scrollPosEffectRemover, GUILayout.Height(TextSize * 25));
-
         EffectRemoverOn = Tog(EffectRemoverOn, Loc("effectremover.title"));
+
+        if (!EffectRemoverOn)
+        {
+            scrollPosEffectRemover = Vector2.zero;
+            return;
+        }
+
+        scrollPosEffectRemover = GUILayout.BeginScrollView(scrollPosEffectRemover, GUILayout.Height(TextSize * 25));
 
         H(() =>
         {
@@ -690,12 +696,6 @@ public static class Options
                 Features.EffectRemover.EffectRemover.RefreshEditorSaveButtons();
             }
         });
-
-        if (!EffectRemoverOn)
-        {
-            GUILayout.EndScrollView();
-            return;
-        }
 
         Label(Loc("effectremover.nondlc"));
         EffectRemoverFilters = Tog(EffectRemoverFilters, Loc("effectremover.filters"));
