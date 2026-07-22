@@ -128,16 +128,16 @@ internal class Patch_PlayerControlUpdate
         if (!HasKeybdSound)
             return;
 
-        float num = (float)(ADOBase.conductor.songposition_minusi
+        float num = ((float)(ADOBase.conductor.songposition_minusi
             - data.doubles[KeybdSoundStartTick])
-            / ADOBase.conductor.song.pitch
             + (float)scrConductor.currentPreset.inputOffset / 1000f
-            + (float)Options.MicrophoneOffset / 1000f;
+            + (float)Options.MicrophoneOffset / 1000f);
 
         if (num >= 0f && (double)num < WavLoader.loaded_clip.length - 0.1)
         {
-            if (Math.Abs(WavLoader.musicSource.time - num) > 0.02)
+            if (Math.Abs(WavLoader.musicSource.time - num) > 0.02f)
                 WavLoader.musicSource.time = num;
+            WavLoader.musicSource.pitch = ADOBase.conductor.song.pitch;
             if (!WavLoader.musicSource.isPlaying)
                 WavLoader.Play_keybdsound(WavLoader.loaded_clip, (float)Options.KeybdSoundVolume / 10f);
         }
