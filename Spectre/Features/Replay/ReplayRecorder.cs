@@ -49,7 +49,9 @@ internal static class ReplayRecorder
         data.ints[EndTile] = scrController.instance.currentSeqID;
         data.strings[JudgmentList] = "[" + string.Join(",", HitMarginCounts) + "]";
         data.doubles[PercentXacc] = ComputePercentXacc();
-        data.ints[MaximumUsedKeys] = ADOBase.controller.maximumUsedKeys;
+        data.ints.TryGetValue(MaximumUsedKeys, out int peak);
+        int cur = ADOBase.controller?.maximumUsedKeys ?? 0;
+        data.ints[MaximumUsedKeys] = Math.Max(peak, cur);
         data.strings[FileName] = CreateFileName();
         if (Options.KeybdSoundRecordActive)
         {
@@ -79,6 +81,14 @@ internal static class ReplayRecorder
 
     internal static void RecordKeyboardState(bool forceSync = false)
     {
+        if (ADOBase.controller != null)
+        {
+            data.ints.TryGetValue(MaximumUsedKeys, out int prev);
+            int cur = ADOBase.controller.maximumUsedKeys;
+            if (cur > prev)
+                data.ints[MaximumUsedKeys] = cur;
+        }
+
         if (!forceSync && UseAsyncInput)
         {
             if (!UseLegacyAsyncRecorder) return;

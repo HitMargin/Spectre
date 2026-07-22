@@ -44,5 +44,4 @@ internal static class ReplayKeys
     public const string PercentXacc = "percentXacc";
     public const string PlaybackSpeed = "playbackSpeed";
     public const string KeybdSoundStartTick = "keybdsound_start_tick";
-    public const string KeybdSoundRecordStartTick = "keybdsound_RecordStartTick";
 }

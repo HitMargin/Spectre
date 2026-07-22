@@ -42,12 +42,11 @@ internal class Patch_PlayerControlUpdate
         // Start keyboard sound recording
         if (is_recording && Options.KeybdSoundRecordActive
             && !AudioRecorder.Instance.IsRecording
-            && !data.doubles.ContainsKey(KeybdSoundRecordStartTick))
+            && !data.doubles.ContainsKey(KeybdSoundStartTick))
         {
             string filePath = Path.Combine(Options.SavePath, "tmp.wav");
             AudioRecorder.Instance.StartRecording(filePath, Options.MicrophoneDeviceName);
-            data.doubles[KeybdSoundRecordStartTick] = ADOBase.conductor.songposition_minusi
-                - (float)Options.MicrophoneOffset / 1000f * ADOBase.conductor.song.pitch;
+            data.doubles[KeybdSoundStartTick] = ADOBase.conductor.songposition_minusi;
         }
 
         if (is_recording && Application.isFocused) Record_kbdstate();
@@ -130,9 +129,10 @@ internal class Patch_PlayerControlUpdate
             return;
 
         float num = (float)(ADOBase.conductor.songposition_minusi
-            - data.doubles[KeybdSoundRecordStartTick])
+            - data.doubles[KeybdSoundStartTick])
             / ADOBase.conductor.song.pitch
-            + (float)scrConductor.currentPreset.inputOffset / 1000f;
+            + (float)scrConductor.currentPreset.inputOffset / 1000f
+            + (float)Options.MicrophoneOffset / 1000f;
 
         if (num >= 0f && (double)num < WavLoader.loaded_clip.length - 0.1)
         {
