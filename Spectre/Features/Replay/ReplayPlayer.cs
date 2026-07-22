@@ -41,8 +41,10 @@ internal static class ReplayPlayer
                 }
             }
         }
-        scrController.instance.noFail = false;
+        scrController.instance.noFail = CachedNoFail ?? false;
+        CachedNoFail = null;
         IgnoreMarkFail = false;
+        SyncEditorNoFailButton();
         try
         {
             WavLoader.Stop_keybdsound();

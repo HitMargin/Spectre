@@ -118,6 +118,17 @@ public static class SpectreState
 
     internal static bool is_recording = false;
 
+    internal static bool? CachedNoFail;
+
+    internal static void SyncEditorNoFailButton()
+    {
+        if (scnEditor.instance == null) return;
+        var btn = scnEditor.instance.buttonNoFail;
+        if (btn == null) return;
+        var img = btn.GetComponent<UnityEngine.UI.Image>();
+        img.color = scrController.instance.noFail ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
+    }
+
     internal static bool RecordMode = true;
 
     internal static bool PlayMode = false;

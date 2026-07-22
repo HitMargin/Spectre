@@ -203,6 +203,7 @@ internal class Patch_StartRewind
                 && Enum.TryParse<HitMarginLimit>(data.strings[HitMarginLimitKey], out var result))
                 StoredHitMarginLimit = result;
             GCS.hitMarginLimit = StoredHitMarginLimit;
+            CachedNoFail = scrController.instance.noFail;
             scrController.instance.noFail = true;
 
             IsFullRun = data.ints.ContainsKey(StartTile) && data.ints.ContainsKey(EndTile)
