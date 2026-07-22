@@ -42,9 +42,10 @@ public static class Main
                 typeof(Patch_SwitchToEditMode), typeof(Patch_Restart), typeof(Patch_QuitToMainMenu),
                 typeof(Patch_WipeToBlack), typeof(Patch_OnLandOnPortal), typeof(Patch_Hit),
                 typeof(Patch_UpdateFreeroam), typeof(Patch_MarkFail),
-                typeof(Patch_UpdateInput_ConsumeYch),
-                typeof(Patch_LevelDataDecode), typeof(Patch_SaveLevelEditorAction),
-                typeof(Patch_EditorLoadGameScene));
+                typeof(Patch_UpdateInput_ConsumeYch));
+            PatchManager.RegisterPatch(typeof(Patch_LevelDataDecode), () => Options.EffectRemoverOn);
+            PatchManager.RegisterPatch(typeof(Patch_SaveLevelEditorAction), () => Options.EffectRemoverOn && Options.EffectRemoverEnableSave);
+            PatchManager.RegisterPatch(typeof(Patch_EditorLoadGameScene), () => Options.EffectRemoverOn);
             PatchManager.ApplyAll();
             SpectreState.SetGetKeyAsyncEnabled(Options.GetDataFromAsyncInput);
             SpectreState.data = new LegacyReplayData();

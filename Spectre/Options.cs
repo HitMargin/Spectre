@@ -233,7 +233,7 @@ public static class Options
         if (SpectreState.is_recording || SpectreState.is_playing)
         {
             Label(Loc("main.text1"));
-            GUI.enabled = false;
+            return;
         }
 
         GUILayout.BeginHorizontal();
@@ -677,7 +677,13 @@ public static class Options
 
     private static void DrawEffectRemoverContent()
     {
+        bool prev = EffectRemoverOn;
         EffectRemoverOn = Tog(EffectRemoverOn, Loc("effectremover.title"));
+        if (prev != EffectRemoverOn)
+        {
+            Features.EffectRemover.EffectRemover.RefreshEditorSaveButtons();
+            Features.EffectRemover.EffectRemover.ToggleEffectRemoverPatches(EffectRemoverOn);
+        }
 
         if (!EffectRemoverOn)
         {
@@ -694,6 +700,7 @@ public static class Options
             {
                 EffectRemoverEnableSave = !EffectRemoverEnableSave;
                 Features.EffectRemover.EffectRemover.RefreshEditorSaveButtons();
+                Features.EffectRemover.EffectRemover.ToggleEditorSavePatch(EffectRemoverEnableSave);
             }
         });
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
 using System.Threading.Tasks;
 using HarmonyLib;
 using UnityEngine;
@@ -21,6 +22,8 @@ internal static class PatchManager
     private static readonly HashSet<Type> _failedPatches = new();
     private static readonly List<MethodInfo> _appliedManualPatches = new();
     private static readonly object _lock = new();
+    private static CancellationTokenSource _lazyPollCts;
+    private static Task _lazyPollTask;
 
     public static void Initialize(Harmony harmony)
     {
@@ -95,6 +98,17 @@ internal static class PatchManager
         Debug.Log($"Unpatched manual prefix: {targetMethod.DeclaringType.Name}.{targetMethod.Name}");
     }
 
+    public static void UnpatchManualPostfix(MethodInfo targetMethod)
+    {
+        if (targetMethod == null) return;
+        lock (_lock)
+        {
+            _harmony.Unpatch(targetMethod, HarmonyPatchType.Postfix, _harmonyId);
+            _appliedManualPatches.Remove(targetMethod);
+        }
+        Debug.Log($"Unpatched manual postfix: {targetMethod.DeclaringType.Name}.{targetMethod.Name}");
+    }
+
     public static void ApplyAll()
     {
         lock (_lock)
@@ -118,27 +132,56 @@ internal static class PatchManager
         }
     }
 
-    public static void ApplyAllAsync()
+    public static void ApplyPatch(Type patchType)
     {
-        System.Threading.CancellationTokenSource cts;
+        if (patchType == null) throw new ArgumentNullException(nameof(patchType));
+        lock (_lock)
+        {
+            if (!_registeredPatches.ContainsKey(patchType))
+                throw new InvalidOperationException($"Patch type {patchType.FullName} is not registered");
+            if (_appliedPatches.Contains(patchType)) return;
+            _harmony.CreateClassProcessor(patchType).Patch();
+            _appliedPatches.Add(patchType);
+        }
+    }
+
+    public static void UnpatchPatch(Type patchType)
+    {
+        if (patchType == null) throw new ArgumentNullException(nameof(patchType));
+        lock (_lock)
+        {
+            if (!_registeredPatches.ContainsKey(patchType))
+                throw new InvalidOperationException($"Patch type {patchType.FullName} is not registered");
+            if (!_appliedPatches.Contains(patchType)) return;
+            _harmony.CreateClassProcessor(patchType).Unpatch();
+            _appliedPatches.Remove(patchType);
+        }
+    }
+
+    public static void ApplyLazyPatchesAsync()
+    {
+        CancellationTokenSource cts;
         lock (_lock)
         {
             if (_lazyPollCts != null) return;
-            cts = _lazyPollCts = new System.Threading.CancellationTokenSource();
+            cts = _lazyPollCts = new CancellationTokenSource();
         }
-        _ = Task.Run(() => ApplyAllAsyncCore(cts));
+        var task = ApplyLazyPatchesAsyncCore(cts);
+        lock (_lock)
+        {
+            if (_lazyPollCts == cts)
+                _lazyPollTask = task;
+        }
     }
 
-    private static async Task ApplyAllAsyncCore(System.Threading.CancellationTokenSource cts)
+    private static async Task ApplyLazyPatchesAsyncCore(CancellationTokenSource cts)
     {
         var token = cts.Token;
         try
         {
-            ApplyImmediatePatches();
             while (!token.IsCancellationRequested)
             {
-                if (ApplyLazyPatches())
-                    break;
+                ApplyLazyPatches();
                 await Task.Delay(100, token).ConfigureAwait(false);
             }
         }
@@ -151,44 +194,17 @@ internal static class PatchManager
         {
             lock (_lock)
             {
-                if (_lazyPollCts == cts)
-                    _lazyPollCts = null;
+                if (_lazyPollCts == cts) _lazyPollCts = null;
             }
             cts.Dispose();
         }
     }
 
-    private static void ApplyImmediatePatches()
+    private static void ApplyLazyPatches()
     {
         lock (_lock)
         {
             if (_harmony == null) return;
-            foreach (var registration in _registeredPatches.Values)
-            {
-                if (registration.IsLazy) continue;
-                if (_appliedPatches.Contains(registration.PatchType)) continue;
-                if (_failedPatches.Contains(registration.PatchType)) continue;
-                if (!registration.IsEnabled()) continue;
-                try
-                {
-                    _harmony.CreateClassProcessor(registration.PatchType).Patch();
-                    _appliedPatches.Add(registration.PatchType);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning($"Failed to apply patch {registration.PatchType.Name}: {e.Message}");
-                    _failedPatches.Add(registration.PatchType);
-                }
-            }
-        }
-    }
-
-    private static bool ApplyLazyPatches()
-    {
-        lock (_lock)
-        {
-            if (_harmony == null) return true;
-            bool allApplied = true;
             foreach (var registration in _registeredPatches.Values)
             {
                 if (!registration.IsLazy) continue;
@@ -208,24 +224,38 @@ internal static class PatchManager
                         _failedPatches.Add(registration.PatchType);
                     }
                 }
-                if (!_appliedPatches.Contains(registration.PatchType) && !_failedPatches.Contains(registration.PatchType))
-                    allApplied = false;
+                else if (!shouldBeEnabled && isApplied)
+                {
+                    try
+                    {
+                        _harmony.CreateClassProcessor(registration.PatchType).Unpatch();
+                        _appliedPatches.Remove(registration.PatchType);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning($"Failed to unpatch patch {registration.PatchType.Name}: {e.Message}");
+                    }
+                }
             }
-            return allApplied;
         }
     }
 
-    private static System.Threading.CancellationTokenSource _lazyPollCts;
-
     public static void UnpatchAll()
     {
-        System.Threading.CancellationTokenSource cts;
+        CancellationTokenSource cts;
+        Task task;
         lock (_lock)
         {
             cts = _lazyPollCts;
+            task = _lazyPollTask;
             _lazyPollCts = null;
         }
         cts?.Cancel();
+        if (task != null)
+        {
+            try { task.Wait(500); }
+            catch (Exception e) { Debug.LogWarning($"[PatchManager] Lazy poll task wait failed: {e.Message}"); }
+        }
         lock (_lock)
         {
             _harmony?.UnpatchAll(_harmonyId);
@@ -255,7 +285,7 @@ internal static class PatchManager
             if (parameters != null)
                 method = AccessTools.Method(declaringType, methodName, parameters, generics);
             else
-                method = AccessTools.Method(declaringType, methodName, generics);
+                method = AccessTools.Method(declaringType, methodName, null, generics);
 
             if (method == null)
                 throw new MissingMethodException($"Cannot find method {methodName} in {declaringType}");
@@ -291,7 +321,7 @@ internal static class PatchManager
         if (string.IsNullOrWhiteSpace(fieldName))
             throw new ArgumentException("Field name cannot be empty", nameof(fieldName));
 
-        var key = $"Field:{typeof(T).FullName}.{fieldName}";
+        var key = $"Field:{typeof(T).FullName}.{fieldName}_{typeof(F).FullName}";
         lock (_lock)
         {
             if (_delegateCache.TryGetValue(key, out var cached))
@@ -305,7 +335,7 @@ internal static class PatchManager
 
     public static Func<T, F> CreatePropertyGetter<T, F>(string propertyName) where T : class
     {
-        var key = $"PropGet:{typeof(T).FullName}.{propertyName}";
+        var key = $"PropGet:{typeof(T).FullName}.{propertyName}_{typeof(F).FullName}";
         lock (_lock)
         {
             if (_delegateCache.TryGetValue(key, out var cached))
@@ -324,7 +354,7 @@ internal static class PatchManager
 
     public static Action<T, F> CreatePropertySetter<T, F>(string propertyName) where T : class
     {
-        var key = $"PropSet:{typeof(T).FullName}.{propertyName}";
+        var key = $"PropSet:{typeof(T).FullName}.{propertyName}_{typeof(F).FullName}";
         lock (_lock)
         {
             if (_delegateCache.TryGetValue(key, out var cached))
@@ -343,7 +373,7 @@ internal static class PatchManager
 
     public static Func<TField> CreateStaticFieldGetter<TField>(Type declaringType, string fieldName)
     {
-        var key = $"StaticFieldGet:{declaringType.FullName}.{fieldName}";
+        var key = $"StaticFieldGet:{declaringType.FullName}.{fieldName}_{typeof(TField).FullName}";
         lock (_lock)
         {
             if (_delegateCache.TryGetValue(key, out var cached))
@@ -365,7 +395,7 @@ internal static class PatchManager
 
     public static Action<TField> CreateStaticFieldSetter<TField>(Type declaringType, string fieldName)
     {
-        var key = $"StaticFieldSet:{declaringType.FullName}.{fieldName}";
+        var key = $"StaticFieldSet:{declaringType.FullName}.{fieldName}_{typeof(TField).FullName}";
         lock (_lock)
         {
             if (_delegateCache.TryGetValue(key, out var cached))
@@ -388,7 +418,7 @@ internal static class PatchManager
 
     public static Func<TField> CreateStaticPropertyGetter<TField>(Type declaringType, string propertyName)
     {
-        var key = $"StaticPropGet:{declaringType.FullName}.{propertyName}";
+        var key = $"StaticPropGet:{declaringType.FullName}.{propertyName}_{typeof(TField).FullName}";
         lock (_lock)
         {
             if (_delegateCache.TryGetValue(key, out var cached))
@@ -407,7 +437,7 @@ internal static class PatchManager
 
     public static Action<TField> CreateStaticPropertySetter<TField>(Type declaringType, string propertyName)
     {
-        var key = $"StaticPropSet:{declaringType.FullName}.{propertyName}";
+        var key = $"StaticPropSet:{declaringType.FullName}.{propertyName}_{typeof(TField).FullName}";
         lock (_lock)
         {
             if (_delegateCache.TryGetValue(key, out var cached))
