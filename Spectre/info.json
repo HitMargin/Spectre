@@ -2,7 +2,7 @@
   "Id": "Spectre",
   "DisplayName": "Spectre",
   "Author": "HitMargin",
-  "Version": "1.0.0",
+  "Version": "0.0.1",
   "AssemblyName": "Spectre.dll",
   "EntryMethod": "Spectre.Main.Load",
   "HomePage": "https://github.com/HitMargin/Spectre",

@@ -67,27 +67,17 @@ internal class Patch_PlayerControlUpdate
             if (__instance.currFloor.seqID != hc.CurrentFloorID
                 || __instance.curFreeRoamSection > hc.curFreeRoamSection)
             {
-                if (IsFullRun)
-                {
-                    while (PlayIndex < data.HitContext_list.Count
-                        && (data.HitContext_list[PlayIndex].CurrentFloorID < __instance.currFloor.seqID
-                            || data.HitContext_list[PlayIndex].curFreeRoamSection < __instance.curFreeRoamSection))
-                        PlayIndex++;
-                    if (PlayIndex >= data.HitContext_list.Count)
-                    {
-                        PlayActions.StopPlaying();
-                        TriggerMessage(LocalizationManager.GetLocalizedText("note.data_empty"));
-                        return;
-                    }
-                    hc = data.HitContext_list[PlayIndex];
-                }
-                else
+                while (PlayIndex < data.HitContext_list.Count
+                    && (data.HitContext_list[PlayIndex].CurrentFloorID < __instance.currFloor.seqID
+                        || data.HitContext_list[PlayIndex].curFreeRoamSection < __instance.curFreeRoamSection))
+                    PlayIndex++;
+                if (PlayIndex >= data.HitContext_list.Count)
                 {
                     PlayActions.StopPlaying();
-                    TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error"), 4f, NotifType.Warning);
-                    Debug.Log($"log{PlayIndex}: {__instance.currFloor.seqID} != {hc.CurrentFloorID}");
+                    TriggerMessage(LocalizationManager.GetLocalizedText("note.data_empty"));
                     return;
                 }
+                hc = data.HitContext_list[PlayIndex];
             }
 
             float angle = GetAngle();
@@ -103,11 +93,7 @@ internal class Patch_PlayerControlUpdate
                 if (__instance.currFloor.seqID != hc.CurrentFloorID
                     || __instance.curFreeRoamSection > hc.curFreeRoamSection)
                 {
-                    if (IsFullRun) break;
-                    PlayActions.StopPlaying();
-                    TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error"), 4f, NotifType.Warning);
-                    Debug.Log($"log{PlayIndex}: {__instance.currFloor.seqID} != {hc.CurrentFloorID}");
-                    return;
+                    break;
                 }
             }
         }

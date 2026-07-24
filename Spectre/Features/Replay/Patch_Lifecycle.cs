@@ -165,7 +165,15 @@ internal class Patch_StartRewind
                     TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error3") + data.strings[JudgeMode], 3f, NotifType.Warning);
                     return;
                 }
-                if (!IsFullRun && GCS.checkpointNum != data.ints[StartTile])
+                if (!IsFullRun && data.ints.TryGetValue(EndTile, out var endTileVal))
+                {
+                    if (GCS.checkpointNum < data.ints[StartTile] || GCS.checkpointNum > endTileVal)
+                    {
+                        TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error4") + data.ints[StartTile], 3f, NotifType.Warning);
+                        return;
+                    }
+                }
+                else if (!IsFullRun && GCS.checkpointNum != data.ints[StartTile])
                 {
                     TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error4") + data.ints[StartTile], 3f, NotifType.Warning);
                     return;
@@ -211,7 +219,7 @@ internal class Patch_StartRewind
                 && data.ints[StartTile] == 0
                 && data.ints[EndTile] == ADOBase.lm.listFloors.Count - 1;
 
-            if (IsFullRun && GCS.checkpointNum != data.ints[StartTile])
+            if (GCS.checkpointNum != data.ints[StartTile])
                 ReplayPlayer.FastForward(GCS.checkpointNum);
 
             PlayActions.StartPlaying();
