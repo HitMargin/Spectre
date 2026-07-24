@@ -135,12 +135,12 @@ internal class Patch_StartRewind
                     //     TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error1") + data.strings[SongName], 3f, NotifType.Warning);
                     //     return;
                     // }
-                    // if (!string.IsNullOrEmpty(data.strings[InternalLevelName])
-                    //     && data.strings[InternalLevelName] != GCS.internalLevelName)
-                    // {
-                    //     TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error1") + data.strings[SongName], 3f, NotifType.Warning);
-                    //     return;
-                    // }
+                    if (!string.IsNullOrEmpty(data.strings[InternalLevelName])
+                         && data.strings[InternalLevelName] != GCS.internalLevelName)
+                    {
+                        TriggerMessage(LocalizationManager.GetLocalizedText("note.play_error1") + data.strings[SongName], 3f, NotifType.Warning);
+                        return;
+                    }
                 }
                 int floorHash = ADOBase.isOfficialLevel
                     ? 0
