@@ -166,7 +166,8 @@
     <Compile Include="Features\Replay\ReplayKeys.cs" />
     <Compile Include="Features\EffectRemover\EffectRemover.cs" />
     <Compile Include="Features\EffectRemover\Patch_EffectRemover.cs" />
-    <Compile Include="Features\Replay\Patch_AlwaysShowMaxUsedKeys.cs" />
+    <Compile Include="Features\Other\Patch_AlwaysShowMaxUsedKeys.cs" />
+    <Compile Include="Features\Other\Patch_AllowSpecialKeys.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

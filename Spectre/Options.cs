@@ -54,6 +54,12 @@ public static class Options
 
     public static bool AlwaysShowMaxUsedKeys = false;
 
+    // ── Special keys filter ─────────────────────────────
+    public static HashSet<string> AllowedKeyboardSpecialKeys = new();
+    public static HashSet<string> AllowedAsyncSpecialKeys = new();
+    private static bool showSpecialKeysPanel = false;
+    private static Vector2 scrollPosSpecialKeys = Vector2.zero;
+
     internal static int selectedTab = 0;
     internal static bool showReplayDetails = false;
     internal static Vector2 scrollPosReplayDetails = Vector2.zero;
@@ -805,5 +811,67 @@ public static class Options
         });
         if (prevShowMaxKeys != Options.AlwaysShowMaxUsedKeys)
             PatchManager.RefreshPatches();
+
+        // ── Special keys filter ──────────────────────────
+        H(() =>
+        {
+            if (Button(showSpecialKeysPanel ? "▼" : "▶", 3f))
+                showSpecialKeysPanel = !showSpecialKeysPanel;
+            Label(Loc("othersettings.special_keys_filter.title"));
+        });
+
+        if (!showSpecialKeysPanel)
+            return;
+
+        Label(Loc("othersettings.special_keys_filter.kb"));
+        DrawSpecialKeyToggles(KeyboardSpecialKeyNames, Options.AllowedKeyboardSpecialKeys);
+
+        Label(Loc("othersettings.special_keys_filter.async"));
+        DrawSpecialKeyToggles(AsyncSpecialKeyNames, Options.AllowedAsyncSpecialKeys);
+    }
+
+    private static readonly string[] KeyboardSpecialKeyNames =
+    {
+        "Print", "SysReq", "LeftAlt", "RightAlt",
+        "LeftWindows", "RightWindows", "LeftMeta", "RightMeta",
+        "Tab", "End",
+        "F1", "F2", "F3", "F4", "F5", "F6",
+        "F7", "F8", "F9", "F10", "F11", "F12"
+    };
+
+    private static readonly string[] AsyncSpecialKeyNames =
+    {
+        "PrintScreen", "F12", "LAlt", "Super"
+    };
+
+    private static void DrawSpecialKeyToggles(string[] keyNames, HashSet<string> allowedSet)
+    {
+        bool changed = false;
+        for (int i = 0; i < keyNames.Length;)
+        {
+            int cols = Mathf.Min(3, keyNames.Length - i);
+            H(() =>
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    int idx = i + j;
+                    string key = keyNames[idx];
+                    bool val = allowedSet.Contains(key);
+                    bool newVal = GUILayout.Toggle(val, Fmt(" " + key + " "),
+                        GUILayout.Height(TextSize * 1.5f), GUILayout.Width(TextSize * 8));
+                    if (newVal != val)
+                    {
+                        if (newVal) allowedSet.Add(key);
+                        else allowedSet.Remove(key);
+                        changed = true;
+                    }
+                }
+            });
+            i += cols;
+        }
+        if (changed)
+        {
+            ConfigManager.SaveConfigs(ConfigManager.configPath);
+        }
     }
 }

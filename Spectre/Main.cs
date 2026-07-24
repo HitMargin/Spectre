@@ -6,6 +6,7 @@ using SkyHook;
 using UnityEngine;
 using UnityModManagerNet;
 using Spectre.Features.Replay;
+using Spectre.Features.Other;
 using Spectre.Features.EffectRemover;
 using ModEntry = UnityModManagerNet.UnityModManager.ModEntry;
 
@@ -44,6 +45,8 @@ public static class Main
                 typeof(Patch_UpdateFreeroam), typeof(Patch_MarkFail),
                 typeof(Patch_UpdateInput_ConsumeYch));
             PatchManager.RegisterPatch(typeof(Patch_AlwaysShowMaxUsedKeys), () => Options.AlwaysShowMaxUsedKeys);
+            PatchManager.RegisterPatch(typeof(Patch_KeyboardSpecialKeys), () => true);
+            PatchManager.RegisterPatch(typeof(Patch_AsyncSpecialKeys), () => true);
             PatchManager.RegisterPatch(typeof(Patch_LevelDataDecode), () => Options.EffectRemoverOn);
             PatchManager.RegisterPatch(typeof(Patch_SaveLevelEditorAction), () => Options.EffectRemoverOn);
             PatchManager.RegisterPatch(typeof(Patch_EditorLoadGameScene), () => Options.EffectRemoverOn);

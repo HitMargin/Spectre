@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -7,8 +8,11 @@ namespace Spectre;
 
 public static class ConfigManager
 {
+    internal static string configPath = "";
+
     internal static void SaveConfigs(string filePath)
     {
+        configPath = filePath;
         var data = new
         {
             Sets = new
@@ -71,6 +75,11 @@ public static class ConfigManager
                 currlanguage = Options.CurrLanguage,
                 microphone_device_name = Options.MicrophoneDeviceName,
                 key_code_convert = Options.KeyCodeConvert
+            },
+            StringLists = new
+            {
+                allowed_keyboard_special_keys = Options.AllowedKeyboardSpecialKeys,
+                allowed_async_special_keys = Options.AllowedAsyncSpecialKeys
             }
         };
         string contents = JsonConvert.SerializeObject(data, Formatting.Indented);
@@ -84,6 +93,7 @@ public static class ConfigManager
 
     public static void LoadConfigs(string filePath)
     {
+        configPath = filePath;
         if (!File.Exists(filePath))
         {
             Debug.Log(("Config file not found: " + filePath));
@@ -154,6 +164,16 @@ public static class ConfigManager
                 Options.CurrLanguage = strs.Value<string>("currlanguage") ?? Options.CurrLanguage;
                 Options.MicrophoneDeviceName = strs.Value<string>("microphone_device_name") ?? Options.MicrophoneDeviceName;
                 Options.KeyCodeConvert = strs.Value<string>("key_code_convert") ?? Options.KeyCodeConvert;
+            }
+            var strLists = json["StringLists"];
+            if (strLists != null)
+            {
+                var kbKeys = strLists["allowed_keyboard_special_keys"]?.ToObject<HashSet<string>>();
+                if (kbKeys != null)
+                    Options.AllowedKeyboardSpecialKeys = kbKeys;
+                var asyncKeys = strLists["allowed_async_special_keys"]?.ToObject<HashSet<string>>();
+                if (asyncKeys != null)
+                    Options.AllowedAsyncSpecialKeys = asyncKeys;
             }
             Debug.Log("Config load success");
         }
