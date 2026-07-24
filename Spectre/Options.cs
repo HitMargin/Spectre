@@ -52,6 +52,8 @@ public static class Options
 
     internal static bool debugKeyError = false;
 
+    public static bool AlwaysShowMaxUsedKeys = false;
+
     internal static int selectedTab = 0;
     internal static bool showReplayDetails = false;
     internal static Vector2 scrollPosReplayDetails = Vector2.zero;
@@ -62,7 +64,8 @@ public static class Options
         "audiorecordsets.title",
         "modUI.title",
         "debugsets.title",
-        "effectremover.title"
+        "effectremover.title",
+        "othersettings.title"
     };
 
     // ── EffectRemover settings ──────────────────────────
@@ -332,6 +335,7 @@ public static class Options
             case 3: DrawUISettingsContent(); break;
             case 4: DrawDebugSettingsContent(); break;
             case 5: DrawEffectRemoverContent(); break;
+            case 6: DrawOtherSettingsContent(); break;
         }
     }
 
@@ -788,5 +792,18 @@ public static class Options
             EffectRemoverResetTrackColor = Tog(EffectRemoverResetTrackColor, Loc("effectremover.resettrackcolor"));
 
         GUILayout.EndScrollView();
+    }
+
+    // ── Other settings ─────────────────────────────────────
+
+    private static void DrawOtherSettingsContent()
+    {
+        bool prevShowMaxKeys = Options.AlwaysShowMaxUsedKeys;
+        H(() =>
+        {
+            Options.AlwaysShowMaxUsedKeys = Tog(Options.AlwaysShowMaxUsedKeys, Loc("othersettings.always_show_max_keys"));
+        });
+        if (prevShowMaxKeys != Options.AlwaysShowMaxUsedKeys)
+            PatchManager.RefreshPatches();
     }
 }

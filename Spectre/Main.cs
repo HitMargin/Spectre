@@ -43,6 +43,7 @@ public static class Main
                 typeof(Patch_WipeToBlack), typeof(Patch_OnLandOnPortal), typeof(Patch_Hit),
                 typeof(Patch_UpdateFreeroam), typeof(Patch_MarkFail),
                 typeof(Patch_UpdateInput_ConsumeYch));
+            PatchManager.RegisterPatch(typeof(Patch_AlwaysShowMaxUsedKeys), () => Options.AlwaysShowMaxUsedKeys);
             PatchManager.RegisterPatch(typeof(Patch_LevelDataDecode), () => Options.EffectRemoverOn);
             PatchManager.RegisterPatch(typeof(Patch_SaveLevelEditorAction), () => Options.EffectRemoverOn);
             PatchManager.RegisterPatch(typeof(Patch_EditorLoadGameScene), () => Options.EffectRemoverOn);

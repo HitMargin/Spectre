@@ -52,7 +52,9 @@ public static class ConfigManager
                 Options.EffectRemoverResetTrackOpacity,
                 Options.EffectRemoverResetTrackAnimation,
                 Options.EffectRemoverResetTrackColor,
-                Options.EffectRemoverSetCameraZoom
+                Options.EffectRemoverSetCameraZoom,
+
+                Options.AlwaysShowMaxUsedKeys
             },
             Ints = new
             {
@@ -133,6 +135,7 @@ public static class ConfigManager
                 Options.EffectRemoverResetTrackAnimation = sets.Value<bool?>("EffectRemoverResetTrackAnimation") ?? Options.EffectRemoverResetTrackAnimation;
                 Options.EffectRemoverResetTrackColor = sets.Value<bool?>("EffectRemoverResetTrackColor") ?? Options.EffectRemoverResetTrackColor;
                 Options.EffectRemoverSetCameraZoom = sets.Value<bool?>("EffectRemoverSetCameraZoom") ?? Options.EffectRemoverSetCameraZoom;
+                Options.AlwaysShowMaxUsedKeys = sets.Value<bool?>("AlwaysShowMaxUsedKeys") ?? Options.AlwaysShowMaxUsedKeys;
             }
             var ints = json["Ints"];
             if (ints != null)
